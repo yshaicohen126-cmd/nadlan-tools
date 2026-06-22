@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מחשבון תשואה — שווה לי? 🌳</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<!-- כלי תשואת שכירות — 100% צד-לקוח, אפס שרת/API. כל החישוב הוא אריתמטיקה מקלט המשתמש (אין נתוני מס/חוק). -->
+<style>
+  :root{
+    --gold:#9F8E70; --gold-deep:#7c6c4f; --cream:#FAF7F2; --paper:#fffdf9;
+    --ink:#2A2520; --muted:#8a7f70;
+    --green:#2f8f4e; --green-soft:#eaf7ee; --green-deep:#1f6e3a;
+    --amber:#e08a1e; --amber-soft:#fdf3e2;
+    --red:#cf4b39; --red-soft:#fdeeeb;
+    --accent:#2f8f4e;
+    --shadow:0 14px 34px rgba(42,37,32,.10);
+    --shadow-sm:0 4px 14px rgba(42,37,32,.08);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Heebo',sans-serif; color:var(--ink); background:var(--cream);
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(47,143,78,.10), transparent 40%),
+      radial-gradient(circle at 88% 18%, rgba(159,142,112,.09), transparent 42%),
+      radial-gradient(circle at 50% 100%, rgba(47,143,78,.06), transparent 45%);
+    line-height:1.75; font-size:18px; padding:0 18px 70px;
+  }
+  .wrap{max-width:820px; margin:0 auto;}
+  header{text-align:center; padding:40px 0 14px;}
+  header img{max-width:150px; height:auto; opacity:.95;}
+  .kicker{display:inline-block; margin-top:18px; background:#fff; border:2px solid var(--gold);
+    color:var(--gold-deep); font-weight:700; font-size:15px; padding:4px 16px; border-radius:999px;}
+  h1{font-family:'Suez One',serif; font-weight:400; font-size:clamp(34px,7vw,56px); line-height:1.1; margin:16px 0 8px;}
+  h1 .hl{color:var(--accent); position:relative; white-space:nowrap;}
+  h1 .hl::after{content:""; position:absolute; right:0; left:0; bottom:6px; height:14px; background:rgba(47,143,78,.20); border-radius:8px; z-index:-1;}
+  .sub{font-size:20px; color:var(--muted); margin:0 auto; max-width:560px;}
+  .reveal{opacity:0; transform:translateY(22px); animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards;}
+  @keyframes rise{to{opacity:1; transform:none;}}
+  section{margin-top:46px;}
+  h2{font-family:'Suez One',serif; font-weight:400; font-size:clamp(25px,4.5vw,33px); margin:0 0 6px; color:var(--gold-deep); display:flex; align-items:center; gap:12px;}
+  .lead{color:var(--muted); margin:0 0 18px; font-size:18px;}
+  .story{background:#fff; border-right:8px solid var(--accent); border-radius:18px; padding:22px 26px; box-shadow:var(--shadow-sm); font-size:19px;}
+  .story b{color:var(--accent);}
+  .card{background:var(--paper); border-radius:22px; padding:26px 28px; box-shadow:var(--shadow); border:1px solid #efe7d8;}
+  .calc{background:linear-gradient(160deg,#fffdf9,#eef6ef); border:2px solid #d8e8dc;}
+  .field{margin-bottom:20px;}
+  .field > label{display:block; font-weight:700; font-size:18px; margin-bottom:6px;}
+  .hint{font-size:14px; color:var(--muted); margin:0 0 8px;}
+  .bigval{font-family:'Suez One',serif; color:var(--accent); font-size:30px; line-height:1;}
+  input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:14px; border-radius:999px;
+    background:linear-gradient(90deg,var(--accent) 0%, #d8e8dc 100%); outline:none; margin-top:8px;}
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:34px; height:34px; border-radius:50%; background:#fff; border:5px solid var(--green-deep); box-shadow:var(--shadow-sm); cursor:pointer;}
+  input[type=range]::-moz-range-thumb{width:30px; height:30px; border-radius:50%; background:#fff; border:5px solid var(--green-deep); cursor:pointer;}
+  .numrow{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; align-items:center;}
+  input[type=number]{font-family:'Heebo'; font-size:18px; font-weight:700; padding:10px 14px; border:2px solid #d8e2d8; border-radius:14px; width:200px; background:#fff; color:var(--ink);}
+  input[type=number]:focus{outline:none; border-color:var(--accent);}
+
+  .gauge{display:flex; gap:24px; align-items:center; flex-wrap:wrap; justify-content:center; margin-top:6px;}
+  .dial{position:relative; width:200px; height:200px; flex:0 0 auto;}
+  .dial .ring{width:200px; height:200px; border-radius:50%; box-shadow:var(--shadow); border:6px solid #fff; transition:background .35s;}
+  .dial .hole{position:absolute; inset:30px; background:#fff; border-radius:50%; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+  .dial .hole .v{font-family:'Suez One',serif; font-size:40px; line-height:1; color:var(--accent);}
+  .dial .hole .l{font-size:13px; color:var(--muted);}
+  .legend{flex:1 1 240px; min-width:240px;}
+  .row{display:flex; justify-content:space-between; align-items:baseline; padding:9px 0; border-bottom:1px dashed #e7dfd0;}
+  .row:last-child{border-bottom:none;}
+  .row .k{color:var(--muted); font-size:16px;} .row .val{font-family:'Suez One',serif; font-size:22px;}
+  .grade{margin-top:12px; border-radius:14px; padding:12px 16px; font-weight:700; font-size:17px;}
+  .share{margin-top:16px; display:inline-flex; align-items:center; gap:8px; background:#25D366; color:#fff;
+    font-weight:800; font-size:17px; padding:12px 24px; border-radius:999px; text-decoration:none; border:none; cursor:pointer; box-shadow:var(--shadow-sm);}
+
+  .doors{display:grid; gap:16px;}
+  .door{display:flex; gap:18px; align-items:flex-start; background:#fff; border-radius:18px; padding:20px 22px; box-shadow:var(--shadow-sm); border:1px solid #efe7d8;}
+  .door .dico{flex:0 0 auto; width:60px; height:60px; border-radius:16px; display:grid; place-items:center; font-size:30px; background:var(--green-soft);}
+  .door h3{margin:0 0 4px; font-size:21px;} .door p{margin:0; color:#5d5648; font-size:17px;}
+  footer{text-align:center; margin-top:54px; padding-top:22px; border-top:2px solid #e0e8e0; color:var(--muted); font-size:15px;}
+  .disclaim{background:#fff; border:1px dashed var(--gold); border-radius:14px; padding:14px 18px; font-size:15px; color:#6f6757; margin-top:24px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="reveal">
+  <img src="../assets/logo-color.png" alt="ראם פרויקטים">
+  <div><span class="kicker">מדריך פשוט • לכל אחד</span></div>
+  <h1>הדירה הזאת — <span class="hl">שווה השקעה?</span></h1>
+  <p class="sub">הכנס מחיר ושכר דירה, וגלה בשנייה כמה אחוז היא מחזירה לך בשנה — והאם זה טוב.</p>
+</header>
+
+<section class="reveal" style="animation-delay:.08s">
+  <div class="story">
+    <p style="margin-top:0">קניית דירה להשקעה זה כמו <b>לשתול עץ</b>: שילמת מחיר על העץ, ועכשיו השאלה כמה <b>פירות</b> (שכר דירה) הוא נותן לך כל שנה ביחס למה ששילמת. 🌳</p>
+    <p style="margin-bottom:0">המספר הזה נקרא <b>תשואה</b>. ככל שהוא גבוה יותר — העץ "עובד" קשה יותר בשבילך.</p>
+  </div>
+</section>
+
+<section class="reveal" style="animation-delay:.16s">
+  <h2><span>🌳</span> מה התשואה של הדירה?</h2>
+  <p class="lead">הזז את המחיר, הכנס שכירות — והמד מתעדכן לבד.</p>
+  <div class="card calc">
+
+    <div class="field">
+      <label>מחיר הדירה</label>
+      <div class="bigval"><span id="priceLabel">1,500,000</span> ₪</div>
+      <input type="range" id="price" min="300000" max="6000000" step="25000" value="1500000">
+      <div class="numrow"><span style="font-size:14px;color:var(--muted)">או סכום מדויק:</span>
+        <input type="number" id="priceNum" value="1500000" min="0"></div>
+    </div>
+
+    <div class="field">
+      <label>שכר דירה חודשי שתקבל</label>
+      <div class="numrow"><input type="number" id="rent" value="5000" min="0" placeholder="₪ לחודש"></div>
+    </div>
+
+    <div class="field">
+      <label>הוצאות בשנה <span style="font-weight:400;color:var(--muted)">(לא חובה)</span></label>
+      <p class="hint">ועד בית, ביטוח, ניהול, תחזוקה — לחישוב התשואה ה"נטו" האמיתית.</p>
+      <div class="numrow"><input type="number" id="exp" value="0" min="0" placeholder="0 ₪ בשנה"></div>
+    </div>
+
+    <div class="gauge">
+      <div class="dial">
+        <div class="ring" id="ring"></div>
+        <div class="hole"><div class="v" id="gaugeV">0%</div><div class="l">תשואה ברוטו</div></div>
+      </div>
+      <div class="legend">
+        <div class="row"><span class="k">תשואה ברוטו (לשנה)</span><span class="val" id="gross" style="color:var(--accent)">0%</span></div>
+        <div class="row"><span class="k">תשואה נטו (אחרי הוצאות)</span><span class="val" id="net">0%</span></div>
+        <div class="row"><span class="k">מחזיר את ההשקעה תוך</span><span class="val" id="payback">— שנים</span></div>
+        <div class="grade" id="grade"></div>
+        <button class="share" id="shareBtn" onclick="shareWA()">🟢 שתף את התוצאה בוואטסאפ</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="reveal" style="animation-delay:.05s">
+  <h2><span>🚪</span> איך קוראים את המספרים?</h2>
+  <div class="doors">
+    <div class="door"><div class="dico">🍏</div><div><h3>ברוטו מול נטו</h3>
+      <p><b>ברוטו</b> = כל שכר הדירה חלקי המחיר. <b>נטו</b> = אחרי שמורידים הוצאות (ועד, ביטוח, ניהול). הנטו הוא מה שבאמת נשאר בכיס.</p></div></div>
+    <div class="door"><div class="dico">📏</div><div><h3>מה נחשב תשואה טובה? <span style="font-size:13px;color:var(--muted)">(כלל אצבע)</span></h3>
+      <p>בשוק המגורים בישראל: מתחת ל-3% נחשב נמוך, סביב 3%–4% זה ממוצע, ו-4% ומעלה נחשב טוב. <b>זה כלל אצבע — לא חוק.</b> תלוי בעיר, בסיכון ובפוטנציאל עליית הערך.</p></div></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="reveal" style="animation-delay:.05s">
+  <div style="background:linear-gradient(150deg,#2f8f4e,#1f6e3a); color:#fff; border-radius:26px; padding:34px 30px; text-align:center; box-shadow:0 20px 44px rgba(47,143,78,.28);">
+    <div style="font-size:42px; line-height:1">🚀</div>
+    <div style="font-family:'Suez One',serif; font-size:clamp(26px,5.2vw,38px); line-height:1.15; margin:8px 0 10px;">תשואה זה מספר אחד. עסקה זה הרבה יותר.</div>
+    <p style="font-size:19px; max-width:580px; margin:0 auto 20px; color:#eaf7ee;">האפליקציה המלאה לוקחת אותך מהמספר היבש לעסקה אמיתית — בעברית, בחינם להתחלה:</p>
+    <div style="display:grid; gap:10px; max-width:540px; margin:0 auto 26px; text-align:right;">
+      <div style="background:rgba(255,255,255,.13); border-radius:14px; padding:13px 20px; font-size:17px;">🤖 <b>ניתוח עסקה עם בינה מלאכותית</b> — אומר לך אם היא משתלמת</div>
+      <div style="background:rgba(255,255,255,.13); border-radius:14px; padding:13px 20px; font-size:17px;">💰 <b>כל העלויות</b> — מס רכישה, עו"ד, תיווך, שיפוץ וכרית חירום</div>
+      <div style="background:rgba(255,255,255,.13); border-radius:14px; padding:13px 20px; font-size:17px;">🧭 <b>מסע מודרך בן 8 שלבים</b> שבונה לך אסטרטגיה אישית</div>
+      <div style="background:rgba(255,255,255,.13); border-radius:14px; padding:13px 20px; font-size:17px;">📊 <b>ציון לעסקה</b> + מחשבוני מס שבח ומשכנתא</div>
+    </div>
+    <a href="https://re-ai-tool.vercel.app" target="_blank" rel="noopener"
+       style="display:inline-block; background:#fff; color:#1f6e3a; font-weight:800; font-size:20px; padding:15px 42px; border-radius:999px; text-decoration:none; box-shadow:0 10px 24px rgba(0,0,0,.20);">
+       לכניסה לאפליקציה החינמית →
+    </a>
+    <p style="font-size:14px; color:#cdeed6; margin:16px 0 0;">בלי כרטיס אשראי · עברית מלאה · נבנה לישראלים</p>
+  </div>
+</section>
+
+<div class="disclaim reveal" style="animation-delay:.05s">
+  <b>הערה חשובה:</b> הכלי מחשב תשואה מהמספרים שאתה מזין — להמחשה והשוואה. "תשואה טובה" היא כלל אצבע, לא ייעוץ. עסקה אמיתית כוללת עוד שיקולים (מס, מימון, סיכון). 💛
+</div>
+
+<footer class="reveal" style="animation-delay:.05s">
+  ראם פרויקטים &nbsp;•&nbsp; כלי הנדל"ן החכם &nbsp;•&nbsp; מחשבון תשואה 🌳
+</footer>
+
+</div>
+
+<script>
+  // SHARE_URL — לעדכן לכתובת הציבורית של הכלי אחרי פרסום ב-GitHub Pages.
+  var SHARE_URL = 'https://re-ai-tool.vercel.app';
+
+  var state = { price:1500000, rent:5000, exp:0 };
+
+  function compute(i){
+    var annualRent = i.rent*12;
+    var gross = i.price>0 ? annualRent/i.price*100 : 0;
+    var netAnnual = annualRent - i.exp;
+    var net = i.price>0 ? netAnnual/i.price*100 : 0;
+    var payback = netAnnual>0 ? i.price/netAnnual : null;
+    return { gross:gross, net:net, payback:payback };
+  }
+
+  function fmtPct(n){ return n.toFixed(1)+'%'; }
+
+  function render(){
+    var r = compute(state);
+    // dial — מציג ברוטו על סקאלה של 0–8% (8%+ = מלא)
+    var fill = Math.max(0, Math.min(1, r.gross/8));
+    document.getElementById('ring').style.background =
+      'conic-gradient(var(--accent) 0 '+(fill*100)+'%, #e3ece4 '+(fill*100)+'% 100%)';
+    document.getElementById('gaugeV').textContent = fmtPct(r.gross);
+    document.getElementById('gross').textContent = fmtPct(r.gross);
+    document.getElementById('net').textContent = fmtPct(r.net);
+    document.getElementById('payback').textContent = r.payback ? Math.round(r.payback)+' שנים' : '—';
+
+    var g = document.getElementById('grade');
+    if(r.gross<=0){ g.style.display='none'; }
+    else {
+      g.style.display='block';
+      if(r.gross<3){ g.style.background='var(--red-soft)'; g.style.color='var(--red)'; g.textContent='📉 תשואה נמוכה (כלל אצבע) — בדוק אם יש פוטנציאל עליית ערך שמצדיק.'; }
+      else if(r.gross<4){ g.style.background='var(--amber-soft)'; g.style.color='#8a5a13'; g.textContent='⚖️ תשואה ממוצעת לשוק המגורים (כלל אצבע).'; }
+      else { g.style.background='var(--green-soft)'; g.style.color='var(--green-deep)'; g.textContent='✅ תשואה טובה לשוק המגורים (כלל אצבע)!'; }
+    }
+  }
+
+  function shareWA(){
+    var r = compute(state);
+    var txt = 'בדקתי דירה ב-₪'+state.price.toLocaleString('he-IL')+' עם שכירות ₪'+state.rent.toLocaleString('he-IL')+
+      '/חודש — תשואה '+fmtPct(r.gross)+'! 🌳 מה התשואה של הדירה שלך? תבדוק כאן: '+SHARE_URL;
+    window.open('https://wa.me/?text='+encodeURIComponent(txt), '_blank');
+  }
+
+  var price=document.getElementById('price'), priceLabel=document.getElementById('priceLabel'), priceNum=document.getElementById('priceNum');
+  price.addEventListener('input', function(){ state.price=+price.value; priceLabel.textContent=(+price.value).toLocaleString('he-IL'); priceNum.value=+price.value; render(); });
+  priceNum.addEventListener('input', function(){ var v=+priceNum.value||0; state.price=v; priceLabel.textContent=v.toLocaleString('he-IL'); if(v>=300000&&v<=6000000) price.value=v; render(); });
+  document.getElementById('rent').addEventListener('input', function(e){ state.rent=+e.target.value||0; render(); });
+  document.getElementById('exp').addEventListener('input', function(e){ state.exp=+e.target.value||0; render(); });
+
+  render();
+</script>
+</body>
+</html>

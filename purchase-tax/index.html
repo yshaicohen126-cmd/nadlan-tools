@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מחשבון מס רכישה — כמה תשלם? 🍕</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Suez+One&family=Heebo:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<!--
+  מדרגות מס רכישה — מאומתות יוני 2026 (3 מקורות: כל-זכות, israel-law, עו"ד דורון אהרוני).
+  מוקפאות בחוק ההסדרים 16.1.2024–15.1.2028 (ללא עדכון מדד) → ערכי 2026 = ערכי 2024.
+-->
+<style>
+  :root{
+    --gold:#9F8E70; --gold-deep:#7c6c4f; --cream:#FAF7F2; --paper:#fffdf9;
+    --ink:#2A2520; --muted:#8a7f70;
+    --green:#2f8f4e; --green-soft:#eaf7ee;
+    --amber:#e08a1e; --amber-soft:#fdf3e2;
+    --red:#cf4b39; --red-soft:#fdeeeb;
+    --pep:#c0492f;
+    --shadow:0 14px 34px rgba(42,37,32,.10);
+    --shadow-sm:0 4px 14px rgba(42,37,32,.08);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Heebo',sans-serif; color:var(--ink); background:var(--cream);
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(159,142,112,.10), transparent 40%),
+      radial-gradient(circle at 88% 18%, rgba(192,73,47,.07), transparent 42%),
+      radial-gradient(circle at 50% 100%, rgba(47,143,78,.06), transparent 45%);
+    line-height:1.75; font-size:18px; padding:0 18px 70px;
+  }
+  .wrap{max-width:820px; margin:0 auto;}
+  header{text-align:center; padding:40px 0 14px;}
+  header img{max-width:150px; height:auto; opacity:.95;}
+  .kicker{display:inline-block; margin-top:18px; background:#fff; border:2px solid var(--gold);
+    color:var(--gold-deep); font-weight:700; font-size:15px; padding:4px 16px; border-radius:999px;}
+  h1{font-family:'Suez One',serif; font-weight:400; font-size:clamp(34px,7vw,56px); line-height:1.1; margin:16px 0 8px;}
+  h1 .hl{color:var(--pep); position:relative; white-space:nowrap;}
+  h1 .hl::after{content:""; position:absolute; right:0; left:0; bottom:6px; height:14px; background:rgba(192,73,47,.20); border-radius:8px; z-index:-1;}
+  .sub{font-size:20px; color:var(--muted); margin:0 auto; max-width:560px;}
+  .reveal{opacity:0; transform:translateY(22px); animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards;}
+  @keyframes rise{to{opacity:1; transform:none;}}
+  section{margin-top:46px;}
+  h2{font-family:'Suez One',serif; font-weight:400; font-size:clamp(25px,4.5vw,33px); margin:0 0 6px; color:var(--gold-deep); display:flex; align-items:center; gap:12px;}
+  .lead{color:var(--muted); margin:0 0 18px; font-size:18px;}
+  .story{background:#fff; border-right:8px solid var(--pep); border-radius:18px; padding:22px 26px; box-shadow:var(--shadow-sm); font-size:19px;}
+  .story b{color:var(--pep);}
+  .card{background:var(--paper); border-radius:22px; padding:26px 28px; box-shadow:var(--shadow); border:1px solid #efe7d8;}
+  .calc{background:linear-gradient(160deg,#fffdf9,#f6efe2); border:2px solid #e7dcc6;}
+
+  .field{margin-bottom:22px;}
+  .field > label{display:block; font-weight:700; font-size:18px; margin-bottom:8px;}
+  .btn2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .pick{background:#fff; border:2px solid #ece3d2; border-radius:16px; padding:16px; cursor:pointer; text-align:center; transition:all .15s;}
+  .pick:hover{border-color:var(--gold);}
+  .pick.on{border-color:var(--pep); background:var(--red-soft);}
+  .pick .pe{font-size:30px;} .pick .pl{font-weight:800; font-size:17px; margin-top:4px;}
+  .pick .ps{font-size:13px; color:var(--muted);}
+  .rentval{font-family:'Suez One',serif; color:var(--pep); font-size:32px; line-height:1;}
+  input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:14px; border-radius:999px;
+    background:linear-gradient(90deg,var(--gold) 0%, #e7dcc6 100%); outline:none; margin-top:10px;}
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:34px; height:34px; border-radius:50%; background:#fff; border:5px solid var(--pep); box-shadow:var(--shadow-sm); cursor:pointer;}
+  input[type=range]::-moz-range-thumb{width:30px; height:30px; border-radius:50%; background:#fff; border:5px solid var(--pep); cursor:pointer;}
+  .numrow{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; align-items:center;}
+  input[type=number]{font-family:'Heebo'; font-size:18px; font-weight:700; padding:10px 14px; border:2px solid #e2d8c4; border-radius:14px; width:200px; background:#fff; color:var(--ink);}
+  input[type=number]:focus{outline:none; border-color:var(--pep);}
+
+  /* pizza pie */
+  .result{display:flex; gap:26px; align-items:center; flex-wrap:wrap; justify-content:center; margin-top:6px;}
+  .pie-wrap{position:relative; width:210px; height:210px; flex:0 0 auto;}
+  .pie{width:210px; height:210px; border-radius:50%; box-shadow:var(--shadow); border:6px solid #fff;
+    transition:background .35s ease;}
+  .pie-center{position:absolute; inset:34px; background:#fff; border-radius:50%; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; box-shadow:inset 0 2px 8px rgba(0,0,0,.06);}
+  .pie-center .pt{font-family:'Suez One',serif; font-size:26px; color:var(--pep); line-height:1.1;}
+  .pie-center .pl{font-size:13px; color:var(--muted);}
+  .legend{flex:1 1 240px; min-width:240px;}
+  .legbig{font-family:'Suez One',serif; font-size:30px; color:var(--ink);}
+  .legbig small{font-family:'Heebo'; font-size:15px; color:var(--muted); font-weight:400;}
+  .per{margin-top:10px; font-size:17px; color:var(--pep); background:#f6efe2; border-radius:12px; padding:8px 14px; display:inline-block;}
+  .zero{margin-top:12px; background:var(--green-soft); border:2px solid #bfe4c9; border-radius:14px; padding:12px 16px; color:var(--green); font-weight:700;}
+
+  table{width:100%; border-collapse:collapse; margin-top:22px; background:#fff; border-radius:14px; overflow:hidden; box-shadow:var(--shadow-sm);}
+  th{background:var(--gold); color:#fff; padding:10px 14px; text-align:right; font-size:15px;}
+  td{padding:10px 14px; border-bottom:1px solid #efe9dd; font-size:16px;}
+  tr:last-child td{border-bottom:none;}
+  .slice-dot{display:inline-block; width:12px; height:12px; border-radius:3px; margin-left:6px; vertical-align:middle;}
+  .note{margin-top:16px; background:var(--amber-soft); border:2px solid #f1d9a8; border-radius:14px; padding:12px 16px; font-size:15px; color:#8a5a13;}
+
+  .doors{display:grid; gap:16px;}
+  .door{display:flex; gap:18px; align-items:flex-start; background:#fff; border-radius:18px; padding:20px 22px; box-shadow:var(--shadow-sm); border:1px solid #efe7d8;}
+  .door .dico{flex:0 0 auto; width:60px; height:60px; border-radius:16px; display:grid; place-items:center; font-size:30px;}
+  .d1 .dico{background:var(--green-soft);} .d2 .dico{background:var(--red-soft);}
+  .door h3{margin:0 0 4px; font-size:21px;} .door p{margin:0; color:#5d5648; font-size:17px;}
+
+  footer{text-align:center; margin-top:54px; padding-top:22px; border-top:2px solid #e7dcc6; color:var(--muted); font-size:15px;}
+  .disclaim{background:#fff; border:1px dashed var(--gold); border-radius:14px; padding:14px 18px; font-size:15px; color:#6f6757; margin-top:24px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="reveal">
+  <img src="../assets/logo-color.png" alt="ראם פרויקטים">
+  <div><span class="kicker">מדריך פשוט • לכל אחד</span></div>
+  <h1>כמה <span class="hl">מס רכישה</span> תשלם על הדירה?</h1>
+  <p class="sub">בלי טבלאות מסובכות. הזז את המחיר — וראה בדיוק כמה "פרוסה" המדינה לוקחת מהקנייה.</p>
+</header>
+
+<section class="reveal" style="animation-delay:.08s">
+  <div class="story">
+    <p style="margin-top:0">כשקונים דירה בישראל, יש מס חד-פעמי שמשלמים למדינה — קוראים לו <b>מס רכישה</b>. 🏠</p>
+    <p>תחשוב על זה כמו <b>פיצה</b>: המחיר של הדירה הוא הפיצה כולה, והמדינה לוקחת <b>פרוסה</b> אחת. הגודל של הפרוסה תלוי בשני דברים: <b>כמה הדירה עולה</b>, ו<b>האם זו הדירה היחידה שלך או דירה להשקעה</b>.</p>
+    <p style="margin-bottom:0">המחשבון למטה מראה לך את הפרוסה הזו — בדיוק, לפי השקל. 🍕</p>
+  </div>
+</section>
+
+<section class="reveal" style="animation-delay:.16s">
+  <h2><span>🍕</span> כמה תשלם? תזיז ותראה</h2>
+  <p class="lead">בחר את הסוג, הזז את המחיר — והפיצה מתעדכנת לבד.</p>
+  <div class="card calc">
+
+    <div class="field">
+      <label>1. איזו דירה זאת בשבילך?</label>
+      <div class="btn2">
+        <div class="pick on" id="pkSingle" onclick="setBuyer('single')">
+          <div class="pe">🏠</div><div class="pl">דירה יחידה / ראשונה</div>
+          <div class="ps">אין לך עוד דירה</div>
+        </div>
+        <div class="pick" id="pkInvestor" onclick="setBuyer('investor')">
+          <div class="pe">🏢</div><div class="pl">דירה נוספת / השקעה</div>
+          <div class="ps">כבר יש לך דירה</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>2. כמה עולה הדירה?</label>
+      <div class="rentval"><span id="priceLabel">1,800,000</span> ₪</div>
+      <input type="range" id="price" min="0" max="8000000" step="25000" value="1800000">
+      <div class="numrow">
+        <span style="font-size:14px;color:var(--muted)">או הקלד סכום מדויק:</span>
+        <input type="number" id="priceNum" value="1800000" min="0">
+      </div>
+    </div>
+
+    <div class="result">
+      <div class="pie-wrap">
+        <div class="pie" id="pie"></div>
+        <div class="pie-center">
+          <div class="pt" id="pieTax">₪0</div>
+          <div class="pl">מס רכישה</div>
+        </div>
+      </div>
+      <div class="legend">
+        <div class="legbig"><span id="taxBig">₪0</span> <small>מס רכישה לתשלום</small></div>
+        <div class="per" id="per">מכל ₪100 → 0 ₪ מס</div>
+        <div class="zero" id="zero" style="display:none">🎉 מתחת לתקרת הפטור — אין מס רכישה בכלל!</div>
+        <div id="explain" style="margin-top:12px; font-size:15px; color:var(--muted)"></div>
+      </div>
+    </div>
+
+    <table id="breakdown"></table>
+    <div class="note" id="note"></div>
+  </div>
+</section>
+
+<section class="reveal" style="animation-delay:.05s">
+  <h2><span>🚪</span> למה ההבדל כל כך גדול?</h2>
+  <div class="doors">
+    <div class="door d1">
+      <div class="dico">🏠</div>
+      <div>
+        <h3>דירה יחידה — יש פטור!</h3>
+        <p>אם זו הדירה היחידה שלך, החלק הראשון של המחיר (עד בערך 1.98 מיליון ₪) <b>פטור לגמרי ממס</b>, ורק מעליו מתחילים לשלם — ובהדרגה. המדינה רוצה לעזור לך לקנות בית לגור בו.</p>
+      </div>
+    </div>
+    <div class="door d2">
+      <div class="dico">🏢</div>
+      <div>
+        <h3>דירה להשקעה — מהשקל הראשון</h3>
+        <p>אם כבר יש לך דירה, אין פטור: משלמים <b>8% מהשקל הראשון</b> (ו-10% על חלק יקר מאוד). לכן על דירה להשקעה המס גבוה בהרבה — חשוב להכניס אותו לחשבון <b>לפני</b> שקונים.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="reveal" style="animation-delay:.05s">
+  <div style="background:linear-gradient(150deg,#2f8f4e,#1f6e3a); color:#fff; border-radius:26px; padding:34px 30px; text-align:center; box-shadow:0 20px 44px rgba(47,143,78,.28);">
+    <div style="font-size:42px; line-height:1">🚀</div>
+    <div style="font-family:'Suez One',serif; font-size:clamp(26px,5.2vw,38px); line-height:1.15; margin:8px 0 10px;">מס הרכישה זה רק ההתחלה.</div>
+    <p style="font-size:19px; max-width:580px; margin:0 auto 20px; color:#eaf7ee;">בעסקה אמיתית יש עוד הרבה מספרים — והאפליקציה המלאה מחשבת לך את כולם, בעברית, בחינם להתחלה:</p>
+    <div style="display:grid; gap:10px; max-width:540px; margin:0 auto 26px; text-align:right;">
+      <div style="background:rgba(255,255,255,.13); border-radius:14px; padding:13px 20px; font-size:17px;">💰 <b>כל העלויות הנסתרות</b> — עו"ד, תיווך, מס רכישה, שיפוץ וכרית חירום</div>
+      <div style="background:rgba(255,255,255,.13); border-radius:14px; padding:13px 20px; font-size:17px;">🤖 <b>ניתוח עסקה עם בינה מלאכותית</b> — מספר לך אם היא משתלמת</div>
+      <div style="background:rgba(255,255,255,.13); border-radius:14px; padding:13px 20px; font-size:17px;">🧭 <b>מסע מודרך בן 8 שלבים</b> שבונה לך אסטרטגיית השקעה אישית</div>
+      <div style="background:rgba(255,255,255,.13); border-radius:14px; padding:13px 20px; font-size:17px;">📊 <b>ציון לעסקה</b> + מחשבוני מס שבח ומשכנתא</div>
+    </div>
+    <a href="https://re-ai-tool.vercel.app" target="_blank" rel="noopener"
+       style="display:inline-block; background:#fff; color:#1f6e3a; font-weight:800; font-size:20px; padding:15px 42px; border-radius:999px; text-decoration:none; box-shadow:0 10px 24px rgba(0,0,0,.20);">
+       לכניסה לאפליקציה החינמית →
+    </a>
+    <p style="font-size:14px; color:#cdeed6; margin:16px 0 0;">בלי כרטיס אשראי · עברית מלאה · נבנה לישראלים</p>
+  </div>
+</section>
+
+<div class="disclaim reveal" style="animation-delay:.05s">
+  <b>הערה חשובה:</b> זה מחשבון להמחשה והשוואה — לא תחליף לייעוץ מס. המספרים לפי המדרגות בתוקף 2025–2026. לעסקה אמיתית כדאי לאמת עם עו"ד או יועץ מס. 💛
+</div>
+
+<footer class="reveal" style="animation-delay:.05s">
+  ראם פרויקטים &nbsp;•&nbsp; כלי הנדל"ן החכם &nbsp;•&nbsp; מחשבון מס רכישה 🍕
+</footer>
+
+</div>
+
+<script>
+  /* ====== TAX_DATA — מדרגות מס רכישה (מאומת יוני 2026, 3 מקורות) ======
+     מוקפא 16.1.2024–15.1.2028 (חוק ההסדרים, ללא עדכון מדד). upTo בש"ח, rate עשרוני. */
+  var BRACKETS = {
+    single: [   // דירה יחידה / ראשונה — מאומת
+      {upTo:1978745,  rate:0.00},
+      {upTo:2347040,  rate:0.035},
+      {upTo:6055070,  rate:0.05},
+      {upTo:20183565, rate:0.08},
+      {upTo:Infinity, rate:0.10}
+    ],
+    investor: [ // דירה נוספת / משקיע — סף 8%→10% = 6,055,070 (מאומת; הערך 5,872,725 שבקוד הישן שגוי)
+      {upTo:6055070,  rate:0.08},
+      {upTo:Infinity, rate:0.10}
+    ]
+  };
+  /* ====== סוף TAX_DATA ====== */
+
+  var SLICE_COLORS = ['#eadfca','#d9b25a','#c98b35','#c0492f','#8f2f1f']; // פרוסות לפי מדרגה
+
+  var state = { buyer:'single', price:1800000 };
+
+  function calcBrackets(price, brackets){
+    var remaining=price, prev=0, total=0, lines=[];
+    for(var i=0;i<brackets.length;i++){
+      var b=brackets[i]; if(remaining<=0) break;
+      var size = b.upTo===Infinity ? remaining : b.upTo-prev;
+      var taxable = Math.min(remaining, size);
+      var tax = taxable*b.rate;
+      if(taxable>0) lines.push({from:prev, to:b.upTo, amount:taxable, rate:b.rate, tax:tax});
+      total+=tax; remaining-=taxable; prev=b.upTo;
+    }
+    return {lines:lines, total:Math.round(total)};
+  }
+
+  function nis(n){ return '₪'+Math.round(n).toLocaleString('he-IL'); }
+  function pct(r){ return (r*100).toFixed(r*100%1===0?0:1)+'%'; }
+
+  function render(){
+    var price = state.price, brk = BRACKETS[state.buyer];
+    var res = calcBrackets(price, brk);
+    var eff = price>0 ? res.total/price : 0;
+
+    // pie
+    document.getElementById('pie').style.background =
+      'conic-gradient(var(--pep) 0 '+(eff*100)+'%, #f0e7d6 '+(eff*100)+'% 100%)';
+    document.getElementById('pieTax').textContent = nis(res.total);
+    document.getElementById('taxBig').textContent = nis(res.total);
+    document.getElementById('per').textContent = 'מכל ₪100 שמשלמים על הדירה → ' + Math.round(eff*100) + ' ₪ מס';
+
+    // zero / explain
+    var zero = document.getElementById('zero'), explain = document.getElementById('explain');
+    if(state.buyer==='single' && res.total===0){ zero.style.display='block'; }
+    else { zero.style.display='none'; }
+    explain.textContent = state.buyer==='single'
+      ? 'דירה יחידה: החלק הראשון פטור, ואז עולים במדרגות.'
+      : 'דירה להשקעה: 8% מהשקל הראשון, ללא פטור.';
+
+    // breakdown table (the slices)
+    var t = document.getElementById('breakdown');
+    var rows = '<tr><th>פרוסת מחיר</th><th>שיעור</th><th>מס בפרוסה</th></tr>';
+    res.lines.forEach(function(l, idx){
+      var label = (l.to===Infinity)
+        ? 'מעל '+nis(l.from)
+        : nis(l.from)+' – '+nis(l.to);
+      rows += '<tr><td><span class="slice-dot" style="background:'+SLICE_COLORS[idx]+'"></span>'+label+'</td>'+
+              '<td>'+pct(l.rate)+'</td>'+
+              '<td>'+(l.tax===0?'<b style="color:var(--green)">פטור</b>':nis(l.tax))+'</td></tr>';
+    });
+    t.innerHTML = rows;
+
+    // note
+    var note = document.getElementById('note');
+    note.textContent = state.buyer==='single'
+      ? 'יש לך דירה אחרת שאתה מתכוון למכור תוך 18 חודשים? עדיין נחשב "דירה יחידה".'
+      : 'אין פטור לדירה להשקעה — גם אם זו הדירה הראשונה שאתה קונה למטרת השקעה.';
+  }
+
+  function setBuyer(b){
+    state.buyer=b;
+    document.getElementById('pkSingle').classList.toggle('on', b==='single');
+    document.getElementById('pkInvestor').classList.toggle('on', b==='investor');
+    render();
+  }
+
+  var price=document.getElementById('price'), priceLabel=document.getElementById('priceLabel'), priceNum=document.getElementById('priceNum');
+  price.addEventListener('input', function(){
+    state.price=+price.value; priceLabel.textContent=(+price.value).toLocaleString('he-IL');
+    priceNum.value=+price.value; render();
+  });
+  priceNum.addEventListener('input', function(){
+    var v=+priceNum.value||0; state.price=v; priceLabel.textContent=v.toLocaleString('he-IL');
+    if(v<=8000000) price.value=v; render();
+  });
+
+  render();
+</script>
+</body>
+</html>
